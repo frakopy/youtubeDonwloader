@@ -1,10 +1,13 @@
 {
     "cSpell.words": [
         "aname",
+        "filesize",
+        "imageio",
         "moviepy",
         "pytube",
         "pytubefix",
         "selectbox",
+        "stlite",
         "streamlit",
         "videofile",
         "vname"

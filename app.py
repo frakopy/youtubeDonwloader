@@ -2,7 +2,7 @@ from pytubefix import YouTube
 import streamlit as st
 import moviepy.editor as mpe
 import os
-
+import re
 
 class YouTubeDownloader:
     def __init__(self, url):
@@ -30,22 +30,26 @@ class YouTubeDownloader:
             self.start_download()
 
     def download(self, file_name):
+        display_name = os.path.basename(file_name)
         with open(file_name, "rb") as file:
             st.download_button(
                 label="Download",
                 data=file,
-                file_name=file_name,
+                file_name=display_name,
             )
-        
+
         os.remove(file_name) # Remove file from local storage
 
-
     def start_download(self):
+        def safe_filename(name):
+            return re.sub(r'[\\/*?:"<>|]', "", name)
+
         with st.spinner('Preparing download please wait...'):
             st.session_state["filename"] = ""
             if self.download_type == "Video and audio":
+                filename = safe_filename(self.youtube.title) + ".mp4"
+                output_dir = "video"
                 vname = "clip.mp4"
-                aname = "audio.mp3"
 
                 # Download video and rename
                 video = self.youtube.streams.filter(subtype="mp4", res="1080p").first().download()
@@ -53,6 +57,8 @@ class YouTubeDownloader:
 
                 # Download audio and rename
                 audio = self.youtube.streams.filter(only_audio=True).first().download()
+                audio_ext = os.path.splitext(audio)[1] # Getting audio extension
+                aname = f"audio{audio_ext}"
                 os.rename(audio, aname)
 
                 # Setting the audio to the video
@@ -61,10 +67,9 @@ class YouTubeDownloader:
                 final = video.set_audio(audio)
 
                 # Output result
-                st.session_state["filename"] = os.path.join(
-                    "video", f"{self.youtube.title}.mp4"
-                )
-                final.write_videofile(st.session_state["filename"])
+                final_path = os.path.join(output_dir, filename)
+                st.session_state["filename"] = final_path
+                final.write_videofile(final_path)
 
                 # Delete video and audio to keep the result
                 os.remove(vname)
@@ -72,10 +77,11 @@ class YouTubeDownloader:
             else:
                 # Download audio and rename
                 audio = self.youtube.streams.filter(only_audio=True).first()
-                st.session_state["filename"] = os.path.join(
-                    "audio", f"{self.youtube.title}.mp3"
-                )
-                audio.download(filename=st.session_state["filename"])
+                filename = safe_filename(self.youtube.title) + ".mp3"
+                output_dir = "audio"
+                audio.download(output_path=output_dir, filename=filename)
+                full_path = os.path.join(output_dir, filename)
+                st.session_state["filename"] = full_path
 
         st.success("Your file is ready to be downloaded")
         self.download(st.session_state["filename"])  # It will be downloaded to your default 'Downloads' directory
