@@ -89,7 +89,7 @@ class YouTubeDownloader:
 
 if __name__ == "__main__":
     st.set_page_config(
-        page_title="YoutubeDownloader",
+        page_title="YoutubeDownloader-app",
         page_icon="📽️",
         layout="centered",
         initial_sidebar_state="expanded",
