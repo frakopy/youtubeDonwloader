@@ -8,4 +8,5 @@ services:
     ports:
       - "8501:8501"
     volumes:
-      - /home/frankb/youtubedownloader:/app
+      - /home/frankb/youtubedownloader/audio:/app/audio
+      - /home/frankb/youtubedownloader/video:/app/video
