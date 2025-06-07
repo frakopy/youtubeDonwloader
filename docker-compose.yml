@@ -4,6 +4,7 @@ services:
     container_name: youtube-downloader
     build: 
       context: .
+    image: frankb/youtube-app:latest
     ports:
       - "8501:8501"
     volumes:
