@@ -4,14 +4,20 @@ import moviepy.editor as mpe
 import os
 import re
 
+
 class YouTubeDownloader:
     def __init__(self, url):
         self.url = url
-        self.youtube =  YouTube(self.url)
+        self.youtube = YouTube(self.url)
         self.stream = None
 
     def get_file_size(self):
-        self.stream = self.youtube.streams.filter(subtype="mp4", res="1080p").first() 
+        self.stream = (
+            self.youtube.streams.filter(progressive=True, file_extension="mp4")
+            .order_by("resolution")
+            .desc()
+            .first()
+        )
         file_size = self.stream.filesize / 1000000
         return file_size
 
@@ -38,13 +44,13 @@ class YouTubeDownloader:
                 file_name=display_name,
             )
 
-        os.remove(file_name) # Remove file from local storage
+        os.remove(file_name)  # Remove file from local storage
 
     def start_download(self):
         def safe_filename(name):
             return re.sub(r'[\\/*?:"<>|]', "", name)
 
-        with st.spinner('Preparing download please wait...'):
+        with st.spinner("Preparing download please wait..."):
             st.session_state["filename"] = ""
             if self.download_type == "Video and audio":
                 filename = safe_filename(self.youtube.title) + ".mp4"
@@ -52,12 +58,20 @@ class YouTubeDownloader:
                 vname = "clip.mp4"
 
                 # Download video and rename
-                video = self.youtube.streams.filter(subtype="mp4", res="1080p").first().download()
+                video = (
+                    self.youtube.streams.filter(
+                        subtype="mp4", progressive=False, type="video"
+                    )
+                    .order_by("resolution")
+                    .desc()
+                    .first()
+                ).download()
+
                 os.rename(video, vname)
 
                 # Download audio and rename
                 audio = self.youtube.streams.filter(only_audio=True).first().download()
-                audio_ext = os.path.splitext(audio)[1] # Getting audio extension
+                audio_ext = os.path.splitext(audio)[1]  # Getting audio extension
                 aname = f"audio{audio_ext}"
                 os.rename(audio, aname)
 
@@ -84,7 +98,9 @@ class YouTubeDownloader:
                 st.session_state["filename"] = full_path
 
         st.success("Your file is ready to be downloaded")
-        self.download(st.session_state["filename"])  # It will be downloaded to your default 'Downloads' directory
+        self.download(
+            st.session_state["filename"]
+        )  # It will be downloaded to your default 'Downloads' directory
 
 
 if __name__ == "__main__":
@@ -94,7 +110,7 @@ if __name__ == "__main__":
         layout="centered",
         initial_sidebar_state="expanded",
     )
-    st.title("YouTube Downloader \U0001F4E5")
+    st.title("YouTube Downloader \U0001f4e5")
     url = st.text_input("Please enter a valid youtube url")
 
     if url:
