@@ -7,6 +7,7 @@ services:
     image: frankb/youtube-app:latest
     ports:
       - "8501:8501"
+    restart: unless-stopped
     volumes:
       - /home/frankb/youtubedownloader/audio:/app/audio
       - /home/frankb/youtubedownloader/video:/app/video
